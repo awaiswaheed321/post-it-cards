@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 
 export function UnlockScreen({
   mode, onSubmit, onSignOut, error, busy,
@@ -21,25 +21,16 @@ export function UnlockScreen({
   const submit = () => { if (canSubmit) onSubmit(pass); };
   const onEnter = (e: React.KeyboardEvent) => { if (e.key === 'Enter') submit(); };
 
-  // Toggling an input's type resets the caret to the start; capture the caret of
-  // the focused field before toggling and restore it after, so typing isn't lost.
-  const caret = useRef<{ el: HTMLInputElement; pos: number } | null>(null);
-  const toggleShow = () => {
-    const el = document.activeElement;
-    if (el instanceof HTMLInputElement && (el.type === 'password' || el.type === 'text')) {
-      caret.current = { el, pos: el.selectionStart ?? el.value.length };
-    } else {
-      caret.current = null;
-    }
-    setShow((s) => !s);
+  // Mask via CSS instead of switching input type, so revealing never resets the
+  // caret. (text-security works on Chrome/Safari/Edge.)
+  const maskStyle = { WebkitTextSecurity: show ? 'none' : 'disc' } as React.CSSProperties;
+  const fieldProps = {
+    type: 'text' as const,
+    autoComplete: 'off' as const,
+    autoCapitalize: 'off' as const,
+    autoCorrect: 'off' as const,
+    spellCheck: false,
   };
-  useEffect(() => {
-    const c = caret.current;
-    if (!c) return;
-    caret.current = null;
-    c.el.focus();
-    try { c.el.setSelectionRange(c.pos, c.pos); } catch { /* ignore */ }
-  }, [show]);
 
   return (
     <main className="grid min-h-screen place-items-center p-6">
@@ -59,20 +50,20 @@ export function UnlockScreen({
         <div className="animate-rise mt-8 w-full [animation-delay:0.18s]">
           <div className="relative mb-3">
             <input
-              type={show ? 'text' : 'password'}
+              {...fieldProps}
               value={pass}
               onChange={(e) => setPass(e.target.value)}
               onKeyDown={creating ? undefined : onEnter}
               placeholder="secret phrase"
               autoFocus
-              autoComplete="off"
+              style={maskStyle}
               className="field-soft w-full px-4 py-3.5 pr-12 font-body"
             />
             <button
               type="button"
               // Don't steal focus from the input — keeps the mobile keyboard open.
               onMouseDown={(e) => e.preventDefault()}
-              onClick={toggleShow}
+              onClick={() => setShow((s) => !s)}
               aria-label={show ? 'hide phrase' : 'show phrase'}
               className="absolute right-2 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full text-lg transition hover:bg-white/10"
             >
@@ -81,12 +72,12 @@ export function UnlockScreen({
           </div>
           {creating && (
             <input
-              type={show ? 'text' : 'password'}
+              {...fieldProps}
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               onKeyDown={onEnter}
               placeholder="type it again"
-              autoComplete="off"
+              style={maskStyle}
               className="field-soft mb-3 w-full px-4 py-3.5 font-body"
             />
           )}
