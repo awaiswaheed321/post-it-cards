@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { Note, UserProfile } from '@/lib/types';
 import type { ReactionMap } from '@/lib/reactions';
@@ -35,12 +35,9 @@ export function Deck({
   const dragStart = useRef<number | null>(null);
   const dragging = useRef(false);
   const [dragX, setDragX] = useState(0);
+  // Comments open/closed persists across card swipes (stays open if you left it open).
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [quip] = useState(() => EMPTY_QUIPS[Math.floor(Math.random() * EMPTY_QUIPS.length)]);
-
-  // Collapse the comments panel whenever the focused card changes.
-  const centerId = notes[safeIndex]?.id ?? null;
-  useEffect(() => { setCommentsOpen(false); }, [centerId]);
 
   if (notes.length === 0) {
     return (
