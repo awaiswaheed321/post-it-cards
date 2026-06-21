@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export function UnlockScreen({
   mode, onSubmit, onSignOut, error, busy,
@@ -20,6 +20,26 @@ export function UnlockScreen({
 
   const submit = () => { if (canSubmit) onSubmit(pass); };
   const onEnter = (e: React.KeyboardEvent) => { if (e.key === 'Enter') submit(); };
+
+  // Toggling an input's type resets the caret to the start; capture the caret of
+  // the focused field before toggling and restore it after, so typing isn't lost.
+  const caret = useRef<{ el: HTMLInputElement; pos: number } | null>(null);
+  const toggleShow = () => {
+    const el = document.activeElement;
+    if (el instanceof HTMLInputElement && (el.type === 'password' || el.type === 'text')) {
+      caret.current = { el, pos: el.selectionStart ?? el.value.length };
+    } else {
+      caret.current = null;
+    }
+    setShow((s) => !s);
+  };
+  useEffect(() => {
+    const c = caret.current;
+    if (!c) return;
+    caret.current = null;
+    c.el.focus();
+    try { c.el.setSelectionRange(c.pos, c.pos); } catch { /* ignore */ }
+  }, [show]);
 
   return (
     <main className="grid min-h-screen place-items-center p-6">
@@ -52,7 +72,7 @@ export function UnlockScreen({
               type="button"
               // Don't steal focus from the input — keeps the mobile keyboard open.
               onMouseDown={(e) => e.preventDefault()}
-              onClick={() => setShow((s) => !s)}
+              onClick={toggleShow}
               aria-label={show ? 'hide phrase' : 'show phrase'}
               className="absolute right-2 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full text-lg transition hover:bg-white/10"
             >

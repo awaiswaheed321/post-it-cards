@@ -36,6 +36,11 @@
     position: relative;
     z-index: 1;
   }
+
+  /* Snappier, single-tap buttons on mobile (no double-tap-zoom delay). */
+  button {
+    touch-action: manipulation;
+  }
 }
 
 @layer components {
