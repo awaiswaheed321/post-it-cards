@@ -102,7 +102,7 @@ export function Deck({
           are a coverflow track: each is positioned by its offset and CSS-transitioned,
           so navigating slides them like turning a page. */}
       <div
-        className="relative h-[23rem] w-full max-w-md select-none sm:h-[25rem]"
+        className="relative h-[23rem] w-full max-w-md select-none overflow-hidden sm:h-[25rem]"
         style={{ touchAction: 'none' }}
         onPointerDown={onDown}
         onPointerMove={onMove}
