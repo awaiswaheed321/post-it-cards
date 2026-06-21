@@ -41,6 +41,19 @@ service cloud.firestore {
       allow delete: if allowed() && resource.data.uid == request.auth.uid;
     }
 
+    // Comments on a note — append-only, end-to-end encrypted.
+    match /comments/{commentId} {
+      allow read: if allowed();
+      allow create: if allowed()
+        && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.cipher is string
+        && request.resource.data.cipher.size() > 0
+        && request.resource.data.cipher.size() <= 4000
+        && request.resource.data.iv is string
+        && request.resource.data.iv.size() > 0;
+      allow update, delete: if false;
+    }
+
     match /users/{uid} {
       allow read: if allowed();
       allow write: if allowed() && request.auth.uid == uid;

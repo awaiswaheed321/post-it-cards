@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { AuthUser, Note, UserProfile } from '@/lib/types';
 import { subscribeNotes, subscribeProfiles, createNote, setLastSeen } from '@/lib/notes';
 import { subscribeReactions, setReaction, type ReactionMap } from '@/lib/reactions';
+import { subscribeComments, addComment, type CommentMap } from '@/lib/comments';
 import { unseenCount } from '@/lib/note-logic';
 import { encryptText } from '@/lib/crypto';
 import { Deck } from './Deck';
@@ -20,6 +21,7 @@ export function App({
   const [notes, setNotes] = useState<Note[]>([]);
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
   const [reactions, setReactions] = useState<ReactionMap>({});
+  const [comments, setComments] = useState<CommentMap>({});
   const [loading, setLoading] = useState(true);
   const [composing, setComposing] = useState(false);
   const [lastSeenBaseline, setLastSeenBaseline] = useState<number>(Date.now());
@@ -29,8 +31,9 @@ export function App({
     const unsubNotes = subscribeNotes(encKey, (n) => { setNotes(n); setLoading(false); });
     const unsubProfiles = subscribeProfiles(setProfiles);
     const unsubReactions = subscribeReactions(encKey, setReactions);
+    const unsubComments = subscribeComments(encKey, setComments);
     void setLastSeen(user.uid);
-    return () => { unsubNotes(); unsubProfiles(); unsubReactions(); };
+    return () => { unsubNotes(); unsubProfiles(); unsubReactions(); unsubComments(); };
   }, [user.uid, encKey]);
 
   const unseen = useMemo(
@@ -89,9 +92,11 @@ export function App({
             notes={notes}
             profiles={profiles}
             reactions={reactions}
+            comments={comments}
             myUid={user.uid}
             unseen={unseen}
             onReact={onReact}
+            onAddComment={(noteId, text) => addComment(noteId, user.uid, text, encKey)}
           />
         )}
       </div>

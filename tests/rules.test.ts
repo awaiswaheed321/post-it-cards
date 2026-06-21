@@ -86,6 +86,33 @@ describe('notes', () => {
   });
 });
 
+describe('comments', () => {
+  const comment = (uid: string, overrides: Record<string, unknown> = {}) => ({
+    noteId: 'n1', authorUid: uid, cipher: 'Y29tbWVudA==', iv: 'aXYxMjM0NTY3OA==',
+    createdAt: serverTimestamp(), ...overrides,
+  });
+  it('allowlisted user can add their own comment', async () => {
+    await assertSucceeds(setDoc(doc(ctx(A), 'comments/c1'), comment('uidA')));
+  });
+  it('cannot comment as someone else', async () => {
+    await assertFails(setDoc(doc(ctx(A), 'comments/c2'), comment('uidB')));
+  });
+  it('rejects empty cipher and over-long cipher', async () => {
+    await assertFails(setDoc(doc(ctx(A), 'comments/c3'), comment('uidA', { cipher: '' })));
+    await assertFails(setDoc(doc(ctx(A), 'comments/c4'), comment('uidA', { cipher: 'x'.repeat(4001) })));
+  });
+  it('allowlisted user can read comments; comments are immutable', async () => {
+    await testEnv.withSecurityRulesDisabled(async (c) => {
+      await setDoc(doc(c.firestore(), 'comments/c5'), comment('uidB'));
+    });
+    await assertSucceeds(getDoc(doc(ctx(A), 'comments/c5')));
+    await assertFails(setDoc(doc(ctx(A), 'comments/c5'), comment('uidA', { cipher: 'ZWRpdA==' })));
+  });
+  it('non-allowlisted user cannot read or write comments', async () => {
+    await assertFails(setDoc(doc(ctx(STRANGER), 'comments/c6'), comment('uidX')));
+  });
+});
+
 describe('reactions', () => {
   const react = (uid: string, overrides: Record<string, unknown> = {}) => ({
     noteId: 'n1', uid, cipher: 'ZW1vamk=', iv: 'aXYxMjM0NTY3OA==',

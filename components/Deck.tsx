@@ -4,9 +4,11 @@ import { useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { Note, UserProfile } from '@/lib/types';
 import type { ReactionMap } from '@/lib/reactions';
+import type { CommentMap } from '@/lib/comments';
 import { otherPerson } from '@/lib/note-logic';
 import { REACTIONS } from '@/lib/config';
 import { Card } from './Card';
+import { Comments } from './Comments';
 
 const EMPTY_QUIPS = [
   "no notes yet — someone's gotta make the first move 😏",
@@ -15,14 +17,16 @@ const EMPTY_QUIPS = [
 ];
 
 export function Deck({
-  notes, profiles, reactions, myUid, unseen, onReact,
+  notes, profiles, reactions, comments, myUid, unseen, onReact, onAddComment,
 }: {
   notes: Note[]; // newest first
   profiles: UserProfile[];
   reactions: ReactionMap;
+  comments: CommentMap;
   myUid: string;
   unseen: number;
   onReact: (noteId: string, emoji: string) => void;
+  onAddComment: (noteId: string, text: string) => Promise<void>;
 }) {
   const [currentId, setCurrentId] = useState<string | null>(null);
   const foundIndex = currentId ? notes.findIndex((n) => n.id === currentId) : -1;
@@ -186,6 +190,14 @@ export function Deck({
           </div>
         )}
       </div>
+
+      <Comments
+        key={center.id}
+        comments={comments[center.id] ?? []}
+        profiles={profiles}
+        myUid={myUid}
+        onAdd={(text) => onAddComment(center.id, text)}
+      />
 
       <div className="flex items-center gap-2 font-body text-sm font-extrabold text-cream">
         <button
