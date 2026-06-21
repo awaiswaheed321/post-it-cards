@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Comment } from '@/lib/comments';
 import { MAX_COMMENT_LENGTH } from '@/lib/comments';
 import type { ReactionMap } from '@/lib/reactions';
@@ -26,6 +26,17 @@ export function Comments({
   // The panel no longer remounts per card, so clear the draft when the card changes.
   useEffect(() => { setText(''); }, [noteId]);
 
+  // Drive the toggle from pointer events (with a tap-vs-scroll check) instead of
+  // click: mobile suppresses the synthesized click right after a swipe gesture,
+  // which was eating the first tap after switching cards.
+  const downXY = useRef<{ x: number; y: number } | null>(null);
+  const onTogglePointerDown = (e: React.PointerEvent) => { downXY.current = { x: e.clientX, y: e.clientY }; };
+  const onTogglePointerUp = (e: React.PointerEvent) => {
+    const d = downXY.current;
+    downXY.current = null;
+    if (d && Math.hypot(e.clientX - d.x, e.clientY - d.y) < 12) onToggle();
+  };
+
   const nameFor = (uid: string) =>
     uid === myUid ? 'you' : profiles.find((p) => p.uid === uid)?.displayName ?? 'them';
 
@@ -47,7 +58,8 @@ export function Comments({
     <div className="w-full max-w-sm">
       <button
         type="button"
-        onClick={onToggle}
+        onPointerDown={onTogglePointerDown}
+        onPointerUp={onTogglePointerUp}
         className="chip mx-auto flex items-center gap-1.5 px-4 py-1.5 font-body text-xs font-bold text-cream/80 transition hover:bg-white/10"
       >
         💬 {comments.length > 0 ? `${comments.length} comment${comments.length === 1 ? '' : 's'}` : 'comments'}
