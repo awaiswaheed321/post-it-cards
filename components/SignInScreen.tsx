@@ -2,7 +2,7 @@
 
 export function SignInScreen({ onSignIn }: { onSignIn: () => void }) {
   return (
-    <main className="grid min-h-screen place-items-center p-6">
+    <main className="grid min-h-[100dvh] place-items-center p-6">
       <div className="flex flex-col items-center text-center">
         <p className="animate-rise mb-3 font-body text-xs font-extrabold uppercase tracking-[0.35em] text-violet">
           just the two of us

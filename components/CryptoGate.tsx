@@ -55,7 +55,7 @@ export function CryptoGate({ user, onSignOut }: { user: AuthUser; onSignOut: () 
 
   if (!configLoaded) {
     return (
-      <main className="grid min-h-screen place-items-center font-display text-3xl text-cream/40">
+      <main className="grid min-h-[100dvh] place-items-center font-display text-3xl text-cream/40">
         <span className="animate-sway">…</span>
       </main>
     );

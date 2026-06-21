@@ -59,7 +59,7 @@ export function App({
   };
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col gap-5 px-4 py-6 sm:py-8">
+    <main className="mx-auto flex min-h-[100dvh] w-full max-w-md flex-col gap-5 px-4 py-6 sm:py-8">
       <header className="flex items-center justify-between">
         <h1 className="font-display text-2xl font-bold leading-none sm:text-3xl">
           <span className="text-cream">Post-It</span>{' '}
@@ -101,7 +101,7 @@ export function App({
         )}
       </div>
 
-      <div className="sticky bottom-3 mt-auto">
+      <div className="mt-auto pb-1">
         {composing ? (
           <div className="animate-rise">
             <Compose

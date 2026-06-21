@@ -2,7 +2,7 @@
 
 export function NotInvited({ onSignOut }: { onSignOut: () => void }) {
   return (
-    <main className="grid min-h-screen place-items-center p-6 text-center">
+    <main className="grid min-h-[100dvh] place-items-center p-6 text-center">
       <div className="flex flex-col items-center">
         <div
           className="candy-card animate-drop-in mb-9 max-w-xs rotate-2 px-9 py-8 text-grape"

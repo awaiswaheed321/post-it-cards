@@ -38,7 +38,7 @@ export function AuthGate() {
 
   if (!ready || (user && access === 'checking')) {
     return (
-      <main className="grid min-h-screen place-items-center font-display text-4xl text-cream/40">
+      <main className="grid min-h-[100dvh] place-items-center font-display text-4xl text-cream/40">
         <span className="animate-sway">…</span>
       </main>
     );

@@ -33,7 +33,7 @@ export function UnlockScreen({
   };
 
   return (
-    <main className="grid min-h-screen place-items-center p-6">
+    <main className="grid min-h-[100dvh] place-items-center p-6">
       <div className="flex w-full max-w-sm flex-col items-center text-center">
         <div className="animate-drop-in mb-8 grid h-16 w-16 place-items-center rounded-3xl bg-gradient-to-br from-pink via-coral to-violet text-3xl shadow-[0_16px_34px_-10px_rgba(140,123,255,0.7)]">
           🔐
