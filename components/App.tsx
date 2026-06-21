@@ -41,18 +41,18 @@ export function App({
     [notes, user.uid, lastSeenBaseline],
   );
 
-  const onReact = async (noteId: string, emoji: string) => {
-    const mine = reactions[noteId]?.[user.uid];
+  const onReact = async (targetId: string, emoji: string) => {
+    const mine = reactions[targetId]?.[user.uid];
     const next = mine === emoji ? null : emoji;
     // Optimistic: reflect the tap instantly; the subscription confirms it shortly.
     setReactions((prev) => {
-      const forNote = { ...(prev[noteId] ?? {}) };
-      if (next === null) delete forNote[user.uid];
-      else forNote[user.uid] = next;
-      return { ...prev, [noteId]: forNote };
+      const forTarget = { ...(prev[targetId] ?? {}) };
+      if (next === null) delete forTarget[user.uid];
+      else forTarget[user.uid] = next;
+      return { ...prev, [targetId]: forTarget };
     });
     try {
-      await setReaction(noteId, user.uid, next, encKey);
+      await setReaction(targetId, user.uid, next, encKey);
     } catch (err) {
       console.error('reaction failed', err);
     }

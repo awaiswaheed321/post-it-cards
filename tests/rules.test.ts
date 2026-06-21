@@ -115,7 +115,7 @@ describe('comments', () => {
 
 describe('reactions', () => {
   const react = (uid: string, overrides: Record<string, unknown> = {}) => ({
-    noteId: 'n1', uid, cipher: 'ZW1vamk=', iv: 'aXYxMjM0NTY3OA==',
+    targetId: 'n1', uid, cipher: 'ZW1vamk=', iv: 'aXYxMjM0NTY3OA==',
     updatedAt: serverTimestamp(), ...overrides,
   });
   it('allowlisted user can react as themselves', async () => {

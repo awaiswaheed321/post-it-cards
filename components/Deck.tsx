@@ -35,6 +35,7 @@ export function Deck({
   const dragStart = useRef<number | null>(null);
   const dragging = useRef(false);
   const [dragX, setDragX] = useState(0);
+  const [openCommentsId, setOpenCommentsId] = useState<string | null>(null);
   const [quip] = useState(() => EMPTY_QUIPS[Math.floor(Math.random() * EMPTY_QUIPS.length)]);
 
   if (notes.length === 0) {
@@ -193,10 +194,14 @@ export function Deck({
 
       <Comments
         key={center.id}
+        open={openCommentsId === center.id}
+        onToggle={() => setOpenCommentsId((cur) => (cur === center.id ? null : center.id))}
         comments={comments[center.id] ?? []}
+        reactions={reactions}
         profiles={profiles}
         myUid={myUid}
         onAdd={(text) => onAddComment(center.id, text)}
+        onReact={onReact}
       />
 
       <div className="flex items-center gap-2 font-body text-sm font-extrabold text-cream">
