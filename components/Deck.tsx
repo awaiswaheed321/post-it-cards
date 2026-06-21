@@ -193,7 +193,7 @@ export function Deck({
       </div>
 
       <Comments
-        key={center.id}
+        noteId={center.id}
         open={openCommentsId === center.id}
         onToggle={() => setOpenCommentsId((cur) => (cur === center.id ? null : center.id))}
         comments={comments[center.id] ?? []}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Comment } from '@/lib/comments';
 import { MAX_COMMENT_LENGTH } from '@/lib/comments';
 import type { ReactionMap } from '@/lib/reactions';
@@ -8,8 +8,9 @@ import { REACTIONS } from '@/lib/config';
 import type { UserProfile } from '@/lib/types';
 
 export function Comments({
-  open, onToggle, comments, reactions, profiles, myUid, onAdd, onReact,
+  noteId, open, onToggle, comments, reactions, profiles, myUid, onAdd, onReact,
 }: {
+  noteId: string;
   open: boolean;
   onToggle: () => void;
   comments: Comment[];
@@ -21,6 +22,9 @@ export function Comments({
 }) {
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
+
+  // The panel no longer remounts per card, so clear the draft when the card changes.
+  useEffect(() => { setText(''); }, [noteId]);
 
   const nameFor = (uid: string) =>
     uid === myUid ? 'you' : profiles.find((p) => p.uid === uid)?.displayName ?? 'them';

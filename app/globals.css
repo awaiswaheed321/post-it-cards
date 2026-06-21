@@ -117,7 +117,6 @@
   .chip {
     border-radius: 9999px;
     border: 1.5px solid rgba(251, 233, 220, 0.16);
-    background: rgba(255, 255, 255, 0.06);
-    backdrop-filter: blur(6px);
+    background: rgba(255, 255, 255, 0.08);
   }
 }

@@ -50,6 +50,8 @@ export function UnlockScreen({
             />
             <button
               type="button"
+              // Don't steal focus from the input — keeps the mobile keyboard open.
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => setShow((s) => !s)}
               aria-label={show ? 'hide phrase' : 'show phrase'}
               className="absolute right-2 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full text-lg transition hover:bg-white/10"
