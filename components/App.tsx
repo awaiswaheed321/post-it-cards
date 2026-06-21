@@ -58,26 +58,43 @@ export function App({
     }
   };
 
+  // Close the compose modal on Escape.
+  useEffect(() => {
+    if (!composing) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setComposing(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [composing]);
+
   return (
     <main className="mx-auto flex min-h-[100dvh] w-full max-w-md flex-col gap-5 px-4 py-6 sm:py-8">
-      <header className="flex items-center justify-between">
-        <h1 className="font-display text-2xl font-bold leading-none sm:text-3xl">
+      <header className="flex items-center justify-between gap-2">
+        <h1 className="font-display text-xl font-bold leading-none sm:text-2xl">
           <span className="text-cream">Post-It</span>{' '}
           <span className="bg-gradient-to-r from-amber via-pink to-violet bg-clip-text text-transparent">Cards</span>
         </h1>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setComposing(true)}
+            aria-label="add a note"
+            className="btn-candy px-3.5 py-1.5 text-sm"
+          >
+            ✏️ note
+          </button>
           <button
             onClick={onLock}
             title="forget the phrase on this device"
-            className="chip px-3 py-1.5 font-body text-xs font-bold text-cream/70 transition hover:bg-white/10 hover:text-cream"
+            aria-label="lock"
+            className="chip px-2.5 py-1.5 font-body text-xs font-bold text-cream/70 transition hover:bg-white/10 hover:text-cream"
           >
-            lock 🔒
+            🔒
           </button>
           <button
             onClick={onSignOut}
-            className="chip px-3 py-1.5 font-body text-xs font-bold text-cream/70 transition hover:bg-white/10 hover:text-cream"
+            aria-label="sign out"
+            className="chip px-2.5 py-1.5 font-body text-xs font-bold text-cream/70 transition hover:bg-white/10 hover:text-cream"
           >
-            sign out
+            ↪
           </button>
         </div>
       </header>
@@ -101,9 +118,15 @@ export function App({
         )}
       </div>
 
-      <div className="mt-auto pb-1">
-        {composing ? (
-          <div className="animate-rise">
+      {composing && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setComposing(false)}
+        >
+          <div className="animate-fade absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="animate-rise relative z-10 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
             <Compose
               onSend={async (text, color) => {
                 const cipher = await encryptText(encKey, text);
@@ -113,17 +136,13 @@ export function App({
             />
             <button
               onClick={() => setComposing(false)}
-              className="mx-auto mt-3 block font-body text-xs font-bold text-cream/55 underline underline-offset-4 hover:text-cream"
+              className="mx-auto mt-3 block font-body text-xs font-bold text-cream/70 underline underline-offset-4 hover:text-cream"
             >
-              never mind
+              cancel
             </button>
           </div>
-        ) : (
-          <button onClick={() => setComposing(true)} className="btn-candy w-full py-3.5 text-base">
-            ✏️ leave a note
-          </button>
-        )}
-      </div>
+        </div>
+      )}
     </main>
   );
 }

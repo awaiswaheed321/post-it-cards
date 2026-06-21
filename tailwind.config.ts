@@ -37,6 +37,7 @@ export default {
         glow: { '0%, 100%': { opacity: '0.85', transform: 'scale(1)' }, '50%': { opacity: '1', transform: 'scale(1.04)' } },
         wiggle: { '0%, 100%': { transform: 'rotate(-8deg)' }, '50%': { transform: 'rotate(8deg)' } },
         pop: { '0%': { transform: 'scale(0.4)', opacity: '0' }, '70%': { transform: 'scale(1.25)' }, '100%': { transform: 'scale(1)', opacity: '1' } },
+        fade: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
       },
       animation: {
         'drop-in': 'drop-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both',
