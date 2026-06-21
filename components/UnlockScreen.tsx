@@ -13,6 +13,7 @@ export function UnlockScreen({
 }) {
   const [pass, setPass] = useState('');
   const [confirm, setConfirm] = useState('');
+  const [show, setShow] = useState(false);
   const creating = mode === 'create';
   const mismatch = creating && confirm.length > 0 && pass !== confirm;
   const canSubmit = pass.length >= 4 && (!creating || pass === confirm) && !busy;
@@ -36,19 +37,29 @@ export function UnlockScreen({
         </p>
 
         <div className="animate-rise mt-8 w-full [animation-delay:0.18s]">
-          <input
-            type="password"
-            value={pass}
-            onChange={(e) => setPass(e.target.value)}
-            onKeyDown={creating ? undefined : onEnter}
-            placeholder="secret phrase"
-            autoFocus
-            autoComplete="off"
-            className="field-soft mb-3 w-full px-4 py-3.5 font-body"
-          />
+          <div className="relative mb-3">
+            <input
+              type={show ? 'text' : 'password'}
+              value={pass}
+              onChange={(e) => setPass(e.target.value)}
+              onKeyDown={creating ? undefined : onEnter}
+              placeholder="secret phrase"
+              autoFocus
+              autoComplete="off"
+              className="field-soft w-full px-4 py-3.5 pr-12 font-body"
+            />
+            <button
+              type="button"
+              onClick={() => setShow((s) => !s)}
+              aria-label={show ? 'hide phrase' : 'show phrase'}
+              className="absolute right-2 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full text-lg transition hover:bg-white/10"
+            >
+              {show ? '🙈' : '👁️'}
+            </button>
+          </div>
           {creating && (
             <input
-              type="password"
+              type={show ? 'text' : 'password'}
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               onKeyDown={onEnter}

@@ -14,6 +14,8 @@
   body {
     @apply text-cream;
     font-family: var(--font-body), system-ui, sans-serif;
+    /* Stop mobile pull-to-refresh / overscroll glow so a swipe never reloads. */
+    overscroll-behavior: none;
   }
 
   /* Warm, fuzzy, cosy dark — soft glows pooling over a deep mulberry night. */

@@ -43,10 +43,11 @@ export function Card({
     : '';
 
   return (
-    <div className={`relative mx-auto w-full max-w-sm ${animate ? 'animate-drop-in' : ''}`}>
-      {/* vivid colour glow so the card pops off the page */}
+    <div className={`relative mx-auto w-full max-w-sm transform-gpu ${animate ? 'animate-drop-in' : ''}`}>
+      {/* vivid colour glow so the card pops off the page (own GPU layer so it
+          composites instead of re-rasterising the blur during a swipe) */}
       <div
-        className="absolute -inset-5 rounded-[44px] opacity-55 blur-3xl"
+        className="absolute -inset-5 transform-gpu rounded-[44px] opacity-55 blur-2xl"
         style={{ backgroundColor: note.color }}
         aria-hidden
       />

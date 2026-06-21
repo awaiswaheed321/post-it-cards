@@ -112,13 +112,15 @@ export function Deck({
         )}
 
         <div
-          className="relative z-20 w-full"
+          className="relative z-20 w-full transform-gpu will-change-transform"
           style={{
             transform: `translateX(${dragX * 0.4}px) rotate(${dragX * 0.015}deg)`,
             transition: dragStart.current !== null ? 'none' : 'transform 0.4s cubic-bezier(0.22,1,0.36,1)',
           }}
         >
-          <Card key={center.id} note={center} {...meta(center)} />
+          {/* No key here on purpose: the card updates in place as you flip, so it
+              doesn't remount/re-animate (which caused the swipe flicker on mobile). */}
+          <Card note={center} animate={false} {...meta(center)} />
         </div>
       </div>
 
