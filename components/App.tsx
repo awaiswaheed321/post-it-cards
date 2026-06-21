@@ -5,8 +5,9 @@ import type { AuthUser, Note, UserProfile } from '@/lib/types';
 import { subscribeNotes, subscribeProfiles, createNote, setLastSeen } from '@/lib/notes';
 import { subscribeReactions, setReaction, type ReactionMap } from '@/lib/reactions';
 import { subscribeComments, addComment, type CommentMap } from '@/lib/comments';
-import { unseenCount } from '@/lib/note-logic';
+import { unseenCount, otherPerson } from '@/lib/note-logic';
 import { encryptText } from '@/lib/crypto';
+import { notifyNewNote } from '@/lib/notify';
 import { Deck } from './Deck';
 import { Compose } from './Compose';
 
@@ -131,6 +132,8 @@ export function App({
               onSend={async (text, color) => {
                 const cipher = await encryptText(encKey, text);
                 await createNote(user.uid, { cipher, color, style: {} });
+                const partner = otherPerson(profiles, user.uid);
+                if (partner) void notifyNewNote(partner.email, partner.displayName, user.displayName);
                 setComposing(false);
               }}
             />
