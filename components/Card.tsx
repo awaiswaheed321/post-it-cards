@@ -69,7 +69,7 @@ export function Card({
           </span>
         </div>
 
-        <p className="min-h-[5.5rem] whitespace-pre-wrap break-words font-hand text-[1.85rem] leading-snug text-grape">
+        <p className="max-h-[15rem] min-h-[5.5rem] overflow-y-auto whitespace-pre-wrap break-words font-hand text-[1.85rem] leading-snug text-grape">
           {note.text}
         </p>
 

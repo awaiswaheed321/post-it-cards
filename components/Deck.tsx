@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import type { CSSProperties } from 'react';
 import type { Note, UserProfile } from '@/lib/types';
 import type { ReactionMap } from '@/lib/reactions';
 import { otherPerson } from '@/lib/note-logic';
@@ -28,6 +29,7 @@ export function Deck({
   const safeIndex = foundIndex >= 0 ? foundIndex : 0;
 
   const dragStart = useRef<number | null>(null);
+  const dragging = useRef(false);
   const [dragX, setDragX] = useState(0);
   const [quip] = useState(() => EMPTY_QUIPS[Math.floor(Math.random() * EMPTY_QUIPS.length)]);
 
@@ -47,9 +49,6 @@ export function Deck({
   const go = (i: number) => setCurrentId(i <= 0 ? null : notes[i].id);
 
   const center = notes[safeIndex];
-  const newer = safeIndex - 1 >= 0 ? notes[safeIndex - 1] : undefined;
-  const older = safeIndex + 1 < notes.length ? notes[safeIndex + 1] : undefined;
-
   const noteReacts = reactions[center.id] ?? {};
   const myReact = noteReacts[myUid];
   const theirEntry = Object.entries(noteReacts).find(([uid]) => uid !== myUid);
@@ -58,17 +57,20 @@ export function Deck({
     ? profiles.find((p) => p.uid === theirEntry[0])?.displayName ?? 'them'
     : null;
 
-  const onDown = (e: React.PointerEvent) => { dragStart.current = e.clientX; };
+  const onDown = (e: React.PointerEvent) => { dragStart.current = e.clientX; dragging.current = false; };
   const onMove = (e: React.PointerEvent) => {
-    if (dragStart.current !== null) setDragX(e.clientX - dragStart.current);
+    if (dragStart.current === null) return;
+    const dx = e.clientX - dragStart.current;
+    if (Math.abs(dx) > 4) dragging.current = true;
+    setDragX(dx);
   };
   const onUp = () => {
     const dx = dragX;
     dragStart.current = null;
     setDragX(0);
     // newer sits on the right, older on the left.
-    if (dx < -45 && newer) go(safeIndex - 1); // swipe left → pull newer in from the right
-    else if (dx > 45 && older) go(safeIndex + 1); // swipe right → pull older in from the left
+    if (dx < -45 && safeIndex - 1 >= 0) go(safeIndex - 1); // swipe left → newer
+    else if (dx > 45 && safeIndex + 1 < notes.length) go(safeIndex + 1); // swipe right → older
   };
 
   return (
@@ -81,47 +83,41 @@ export function Deck({
         )}
       </div>
 
+      {/* Fixed-height viewport so flipping never changes the layout height. Cards
+          are a coverflow track: each is positioned by its offset and CSS-transitioned,
+          so navigating slides them like turning a page. */}
       <div
-        className="relative flex w-full max-w-md touch-pan-y select-none justify-center"
+        className="relative h-[23rem] w-full max-w-md touch-pan-y select-none sm:h-[25rem]"
         onPointerDown={onDown}
         onPointerMove={onMove}
         onPointerUp={onUp}
         onPointerLeave={() => { if (dragStart.current !== null) onUp(); }}
       >
-        {/* older peeks on the LEFT */}
-        {older && (
-          <button
-            type="button"
-            onClick={() => go(safeIndex + 1)}
-            aria-label="older note"
-            className="absolute left-0 top-1/2 z-10 w-[80%] -translate-x-[46%] -translate-y-1/2 -rotate-6 scale-[0.8] opacity-40 blur-[1.5px] transition hover:opacity-65"
-          >
-            <Card note={older} animate={false} {...meta(older)} />
-          </button>
-        )}
-        {/* newer peeks on the RIGHT */}
-        {newer && (
-          <button
-            type="button"
-            onClick={() => go(safeIndex - 1)}
-            aria-label="newer note"
-            className="absolute right-0 top-1/2 z-10 w-[80%] translate-x-[46%] -translate-y-1/2 rotate-6 scale-[0.8] opacity-40 blur-[1.5px] transition hover:opacity-65"
-          >
-            <Card note={newer} animate={false} {...meta(newer)} />
-          </button>
-        )}
-
-        <div
-          className="relative z-20 w-full transform-gpu will-change-transform"
-          style={{
-            transform: `translateX(${dragX * 0.4}px) rotate(${dragX * 0.015}deg)`,
-            transition: dragStart.current !== null ? 'none' : 'transform 0.4s cubic-bezier(0.22,1,0.36,1)',
-          }}
-        >
-          {/* No key here on purpose: the card updates in place as you flip, so it
-              doesn't remount/re-animate (which caused the swipe flicker on mobile). */}
-          <Card note={center} animate={false} {...meta(center)} />
-        </div>
+        {notes.map((n, i) => {
+          const offset = i - safeIndex;
+          if (Math.abs(offset) > 2) return null;
+          const visible = Math.abs(offset) <= 1;
+          const style: CSSProperties = {
+            transform:
+              `translate(calc(-50% + ${offset * 58}% + ${dragX}px), -50%)` +
+              ` scale(${offset === 0 ? 1 : 0.82}) rotate(${offset * 5 + dragX * 0.015}deg)`,
+            opacity: visible ? (offset === 0 ? 1 : 0.5) : 0,
+            zIndex: 20 - Math.abs(offset),
+            transition: dragStart.current !== null
+              ? 'none'
+              : 'transform 0.45s cubic-bezier(0.22,1,0.36,1), opacity 0.4s ease',
+            pointerEvents: 'none',
+          };
+          return (
+            <div
+              key={n.id}
+              className="absolute left-1/2 top-1/2 w-full max-w-sm transform-gpu will-change-transform"
+              style={style}
+            >
+              <Card note={n} animate={false} {...meta(n)} />
+            </div>
+          );
+        })}
       </div>
 
       {/* reactions — pick yours, see theirs */}
@@ -181,7 +177,7 @@ export function Deck({
         </button>
       </div>
 
-      <p className="font-hand text-base text-creamdim/70">swipe or tap a card to flip 👆</p>
+      <p className="font-hand text-base text-creamdim/70">swipe or use the arrows to flip 👆</p>
     </div>
   );
 }

@@ -14,8 +14,9 @@
   body {
     @apply text-cream;
     font-family: var(--font-body), system-ui, sans-serif;
-    /* Stop mobile pull-to-refresh / overscroll glow so a swipe never reloads. */
-    overscroll-behavior: none;
+    /* Keep vertical pull-to-refresh, but stop horizontal overscroll so a card
+       swipe never triggers the browser's back/forward navigation. */
+    overscroll-behavior-x: contain;
   }
 
   /* Warm, fuzzy, cosy dark — soft glows pooling over a deep mulberry night. */
