@@ -11,6 +11,9 @@ export const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || 'missing',
 };
 
+// App Check (anti-abuse). Public reCAPTCHA v3 site key; empty until configured.
+export const recaptchaSiteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '';
+
 export const MAX_NOTE_LENGTH = 280;
 
 // Warm, juicy candy colors for the cards.
