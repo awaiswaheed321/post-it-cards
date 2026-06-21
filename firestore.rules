@@ -1,0 +1,65 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // The allowlist of permitted emails lives in config/allowlist (managed only
+    // from the Firebase admin console), so it never appears in source control.
+    function allowed() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && exists(/databases/$(database)/documents/config/allowlist)
+        && request.auth.token.email in get(/databases/$(database)/documents/config/allowlist).data.emails;
+    }
+
+    // Notes store only ciphertext + IV; plaintext length is capped client-side
+    // before encryption. The cap here just bounds stored ciphertext size.
+    function validNote() {
+      return request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.cipher is string
+        && request.resource.data.cipher.size() > 0
+        && request.resource.data.cipher.size() <= 5000
+        && request.resource.data.iv is string
+        && request.resource.data.iv.size() > 0;
+    }
+
+    match /notes/{noteId} {
+      allow read: if allowed();
+      allow create: if allowed() && validNote();
+      allow update, delete: if false;
+    }
+
+    // Reactions: one per person per note, end-to-end encrypted. You may only
+    // write/remove your own (the uid field must be you).
+    match /reactions/{reactionId} {
+      allow read: if allowed();
+      allow create, update: if allowed()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.cipher is string
+        && request.resource.data.cipher.size() > 0
+        && request.resource.data.iv is string
+        && request.resource.data.iv.size() > 0;
+      allow delete: if allowed() && resource.data.uid == request.auth.uid;
+    }
+
+    match /users/{uid} {
+      allow read: if allowed();
+      allow write: if allowed() && request.auth.uid == uid;
+    }
+
+    match /readState/{uid} {
+      allow read, write: if allowed() && request.auth.uid == uid;
+    }
+
+    // Non-secret crypto parameters (salt + verifier). Create-once, then immutable.
+    match /config/crypto {
+      allow read: if allowed();
+      allow create: if allowed();
+      allow update, delete: if false;
+    }
+
+    // The allowlist itself — only manageable from the admin console, never clients.
+    match /config/allowlist {
+      allow read, write: if false;
+    }
+  }
+}
