@@ -73,6 +73,15 @@ export function Deck({
     else if (dx > 45 && safeIndex + 1 < notes.length) go(safeIndex + 1); // swipe right → older
   };
 
+  // Over-swiping toward a side with no card: dampen the drag (rubber-band) and
+  // glow that edge red to signal "nothing here".
+  const atNewest = safeIndex === 0; // nothing newer → right side empty
+  const atOldest = safeIndex === notes.length - 1; // nothing older → left side empty
+  const emptyRight = atNewest && dragX < 0; // swiping left to reveal the (missing) newer card
+  const emptyLeft = atOldest && dragX > 0; // swiping right to reveal the (missing) older card
+  const eff = emptyRight || emptyLeft ? dragX * 0.35 : dragX;
+  const edgeOpacity = Math.min(Math.abs(dragX) / 130, 0.6);
+
   return (
     <div className="flex flex-col items-center gap-5">
       <div className="h-7">
@@ -97,10 +106,11 @@ export function Deck({
           const offset = i - safeIndex;
           if (Math.abs(offset) > 2) return null;
           const visible = Math.abs(offset) <= 1;
+          // newer (smaller index → negative offset) sits on the RIGHT, older on the LEFT.
           const style: CSSProperties = {
             transform:
-              `translate(calc(-50% + ${offset * 58}% + ${dragX}px), -50%)` +
-              ` scale(${offset === 0 ? 1 : 0.82}) rotate(${offset * 5 + dragX * 0.015}deg)`,
+              `translate(calc(-50% + ${-offset * 58}% + ${eff}px), -50%)` +
+              ` scale(${offset === 0 ? 1 : 0.82}) rotate(${-offset * 5 + eff * 0.015}deg)`,
             opacity: visible ? (offset === 0 ? 1 : 0.5) : 0,
             zIndex: 20 - Math.abs(offset),
             transition: dragStart.current !== null
@@ -118,6 +128,26 @@ export function Deck({
             </div>
           );
         })}
+
+        {/* empty-side feedback: red glow when over-swiping past the ends */}
+        <div
+          className="pointer-events-none absolute inset-y-0 right-0 z-30 w-2/5 rounded-r-3xl"
+          style={{
+            opacity: emptyRight ? edgeOpacity : 0,
+            transition: dragStart.current !== null ? 'none' : 'opacity 0.3s ease',
+            background: 'radial-gradient(120% 90% at 100% 50%, rgba(255,70,70,0.85), transparent 70%)',
+          }}
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute inset-y-0 left-0 z-30 w-2/5 rounded-l-3xl"
+          style={{
+            opacity: emptyLeft ? edgeOpacity : 0,
+            transition: dragStart.current !== null ? 'none' : 'opacity 0.3s ease',
+            background: 'radial-gradient(120% 90% at 0% 50%, rgba(255,70,70,0.85), transparent 70%)',
+          }}
+          aria-hidden
+        />
       </div>
 
       {/* reactions — pick yours, see theirs */}
