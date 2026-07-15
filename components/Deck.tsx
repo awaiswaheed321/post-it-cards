@@ -142,7 +142,10 @@ export function Deck({
             transition: dragStart.current !== null
               ? 'none'
               : 'transform 0.45s cubic-bezier(0.22,1,0.36,1), opacity 0.4s ease',
-            pointerEvents: 'none',
+            // The centered card must receive touches so its text can scroll
+            // natively (swipes still reach the viewport by bubbling). Side peeks
+            // stay inert — they're decoration.
+            pointerEvents: offset === 0 ? 'auto' : 'none',
           };
           return (
             <div
