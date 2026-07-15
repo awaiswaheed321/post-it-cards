@@ -32,8 +32,10 @@ export function Deck({
   const foundIndex = currentId ? notes.findIndex((n) => n.id === currentId) : -1;
   const safeIndex = foundIndex >= 0 ? foundIndex : 0;
 
-  const dragStart = useRef<number | null>(null);
-  const dragging = useRef(false);
+  const dragStart = useRef<{ x: number; y: number } | null>(null);
+  // Which way this gesture is going: 'h' = card swipe (ours), 'v' = scroll/pull-to-
+  // refresh (the browser's). Decided once per gesture, on first real movement.
+  const dragAxis = useRef<'h' | 'v' | null>(null);
   const [dragX, setDragX] = useState(0);
   // Comments open/closed persists across card swipes (stays open if you left it open).
   const [commentsOpen, setCommentsOpen] = useState(false);
@@ -63,17 +65,31 @@ export function Deck({
     ? profiles.find((p) => p.uid === theirEntry[0])?.displayName ?? 'them'
     : null;
 
-  const onDown = (e: React.PointerEvent) => { dragStart.current = e.clientX; dragging.current = false; };
+  const onDown = (e: React.PointerEvent) => {
+    dragStart.current = { x: e.clientX, y: e.clientY };
+    dragAxis.current = null;
+  };
   const onMove = (e: React.PointerEvent) => {
-    if (dragStart.current === null) return;
-    const dx = e.clientX - dragStart.current;
-    if (Math.abs(dx) > 4) dragging.current = true;
-    setDragX(dx);
+    const start = dragStart.current;
+    if (!start) return;
+    const dx = e.clientX - start.x;
+    const dy = e.clientY - start.y;
+    if (dragAxis.current === null) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return; // too small to judge yet
+      dragAxis.current = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
+    }
+    // Horizontal: our card swipe. Vertical: leave it to the browser (card scroll /
+    // pull-to-refresh) — touch-action pan-y lets it through, we just don't react.
+    if (dragAxis.current === 'h') setDragX(dx);
+  };
+  const cancelDrag = () => {
+    dragStart.current = null;
+    dragAxis.current = null;
+    setDragX(0);
   };
   const onUp = () => {
-    const dx = dragX;
-    dragStart.current = null;
-    setDragX(0);
+    const dx = dragAxis.current === 'h' ? dragX : 0;
+    cancelDrag();
     // newer sits on the right, older on the left.
     if (dx < -45 && safeIndex - 1 >= 0) go(safeIndex - 1); // swipe left → newer
     else if (dx > 45 && safeIndex + 1 < notes.length) go(safeIndex + 1); // swipe right → older
@@ -103,10 +119,13 @@ export function Deck({
           so navigating slides them like turning a page. */}
       <div
         className="relative h-[23rem] w-full max-w-md select-none sm:h-[25rem]"
-        style={{ touchAction: 'none' }}
+        // pan-y: vertical touch gestures stay native (scroll inside the card,
+        // pull-to-refresh when it's already at the top); horizontal is ours.
+        style={{ touchAction: 'pan-y' }}
         onPointerDown={onDown}
         onPointerMove={onMove}
         onPointerUp={onUp}
+        onPointerCancel={cancelDrag}
         onPointerLeave={() => { if (dragStart.current !== null) onUp(); }}
       >
         {notes.map((n, i) => {

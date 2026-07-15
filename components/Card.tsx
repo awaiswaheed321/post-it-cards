@@ -69,7 +69,11 @@ export function Card({
           </span>
         </div>
 
-        <p className="max-h-[15rem] min-h-[5.5rem] overflow-y-auto whitespace-pre-wrap break-words font-hand text-[1.85rem] leading-snug text-grape">
+        {/* Fixed height so every card is the same size; long notes scroll inside.
+            Native vertical touch (allowed by the deck's pan-y) scrolls this, and
+            when it's already at the top the gesture chains up to page
+            pull-to-refresh. */}
+        <p className="h-[11rem] overflow-y-auto whitespace-pre-wrap break-words pr-1 font-hand text-[1.85rem] leading-snug text-grape">
           {note.text}
         </p>
 
