@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { Note, UserProfile } from '@/lib/types';
 import type { ReactionMap } from '@/lib/reactions';
@@ -37,6 +37,22 @@ export function Deck({
   // refresh (the browser's). Decided once per gesture, on first real movement.
   const dragAxis = useRef<'h' | 'v' | null>(null);
   const [dragX, setDragX] = useState(0);
+  const viewportRef = useRef<HTMLDivElement | null>(null);
+
+  // Once a gesture is decided horizontal, block the browser from hijacking it as
+  // a vertical scroll / pull-to-refresh (thumbs arc downward, and with the page
+  // at scroll-top Chrome eagerly starts pull-to-refresh and pointercancels us).
+  // Needs a native non-passive listener — React's synthetic events can't
+  // preventDefault scrolling.
+  useEffect(() => {
+    const el = viewportRef.current;
+    if (!el) return;
+    const onTouchMove = (e: TouchEvent) => {
+      if (dragAxis.current === 'h' && e.cancelable) e.preventDefault();
+    };
+    el.addEventListener('touchmove', onTouchMove, { passive: false });
+    return () => el.removeEventListener('touchmove', onTouchMove);
+  }, []);
   // Comments open/closed persists across card swipes (stays open if you left it open).
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [quip] = useState(() => EMPTY_QUIPS[Math.floor(Math.random() * EMPTY_QUIPS.length)]);
@@ -118,6 +134,7 @@ export function Deck({
           are a coverflow track: each is positioned by its offset and CSS-transitioned,
           so navigating slides them like turning a page. */}
       <div
+        ref={viewportRef}
         className="relative h-[23rem] w-full max-w-md select-none sm:h-[25rem]"
         // pan-y: vertical touch gestures stay native (scroll inside the card,
         // pull-to-refresh when it's already at the top); horizontal is ours.
